@@ -30,8 +30,12 @@ void ctoy_main_loop(void)
 
    ImGui_ImplOpenGLES2_NewFrame();
    ImGui_ImplCToy_NewFrame();
+
    igNewFrame();
-   
+
+   bool op = true;
+   igShowDemoWindow(&op);
+
    // Dear ImGui Hello World
    {
       static char buf[256] = "Quick brown fox";

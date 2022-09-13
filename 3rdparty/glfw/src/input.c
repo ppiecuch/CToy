@@ -2,7 +2,7 @@
 // GLFW 3.3 - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
-// Copyright (c) 2006-2016 Camilla Löwy <elmindreda@glfw.org>
+// Copyright (c) 2006-2019 Camilla Löwy <elmindreda@glfw.org>
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -453,13 +453,13 @@ _GLFWjoystick* _glfwAllocJoystick(const char* name,
     js->present     = GLFW_TRUE;
     js->name        = _glfw_strdup(name);
     js->axes        = calloc(axisCount, sizeof(float));
-    js->buttons     = calloc(buttonCount + hatCount * 4, 1);
+    js->buttons     = calloc(buttonCount + (size_t) hatCount * 4, 1);
     js->hats        = calloc(hatCount, 1);
     js->axisCount   = axisCount;
     js->buttonCount = buttonCount;
     js->hatCount    = hatCount;
 
-    strcpy(js->guid, guid);
+    strncpy(js->guid, guid, sizeof(js->guid) - 1);
     js->mapping = findValidMapping(js);
 
     return js;
@@ -1281,8 +1281,18 @@ GLFWAPI int glfwGetGamepadState(int jid, GLFWgamepadstate* state)
         if (e->type == _GLFW_JOYSTICK_AXIS)
         {
             const float value = js->axes[e->index] * e->axisScale + e->axisOffset;
-            if (value > 0.f)
-                state->buttons[i] = GLFW_PRESS;
+            // HACK: This should be baked into the value transform
+            // TODO: Bake into transform when implementing output modifiers
+            if (e->axisOffset < 0 || (e->axisOffset == 0 && e->axisScale > 0))
+            {
+                if (value >= 0.f)
+                    state->buttons[i] = GLFW_PRESS;
+            }
+            else
+            {
+                if (value <= 0.f)
+                    state->buttons[i] = GLFW_PRESS;
+            }
         }
         else if (e->type == _GLFW_JOYSTICK_HATBIT)
         {
@@ -1309,9 +1319,11 @@ GLFWAPI int glfwGetGamepadState(int jid, GLFWgamepadstate* state)
             const unsigned int bit = e->index & 0xf;
             if (js->hats[hat] & bit)
                 state->axes[i] = 1.f;
+            else
+                state->axes[i] = -1.f;
         }
         else if (e->type == _GLFW_JOYSTICK_BUTTON)
-            state->axes[i] = (float) js->buttons[e->index];
+            state->axes[i] = js->buttons[e->index] * 2.f - 1.f;
     }
 
     return GLFW_TRUE;

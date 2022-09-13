@@ -450,9 +450,9 @@ void ctoy__add_libs(void)
             tcc_add_file(ctoy__tcc, filename, TCC_FILETYPE_BINARY);
 #else
             dlopen(filename, RTLD_LAZY);
-	#ifndef __APPLE__
+    #ifndef __APPLE__
             tcc_add_file(ctoy__tcc, filename, TCC_FILETYPE_BINARY);
-	#endif
+    #endif
 #endif
          }
       }
@@ -502,8 +502,13 @@ int ctoy__tcc_init(void)
    ctoy__add_libs();
 
    /* main.c */
+#ifdef TCC_FILETYPE_C
    if (tcc_add_file(ctoy__tcc, "src/main.c", TCC_FILETYPE_C) == -1)
         return 0;
+#else
+   if (tcc_add_file(ctoy__tcc, "src/main.c") == -1)
+        return 0;
+#endif
 
    /* symbols */
    ctoy__all_symbols();

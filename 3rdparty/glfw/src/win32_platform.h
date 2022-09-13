@@ -2,7 +2,7 @@
 // GLFW 3.3 Win32 - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
-// Copyright (c) 2006-2016 Camilla Löwy <elmindreda@glfw.org>
+// Copyright (c) 2006-2019 Camilla Löwy <elmindreda@glfw.org>
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -100,6 +100,9 @@
 #endif
 #ifndef _WIN32_WINNT_WINBLUE
  #define _WIN32_WINNT_WINBLUE 0x0602
+#endif
+#ifndef _WIN32_WINNT_WIN8
+ #define _WIN32_WINNT_WIN8 0x0602
 #endif
 #ifndef WM_GETDPISCALEDSIZE
  #define WM_GETDPISCALEDSIZE 0x02e4

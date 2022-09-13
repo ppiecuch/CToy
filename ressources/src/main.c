@@ -1,5 +1,5 @@
 
-#define CTOY_SAMPLE 1 // change me
+#define CTOY_SAMPLE 7 // change me
 
 // samples
 #if CTOY_SAMPLE == 1

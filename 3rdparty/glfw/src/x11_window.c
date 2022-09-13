@@ -2,7 +2,7 @@
 // GLFW 3.3 X11 - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
-// Copyright (c) 2006-2016 Camilla Löwy <elmindreda@glfw.org>
+// Copyright (c) 2006-2019 Camilla Löwy <elmindreda@glfw.org>
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -1196,38 +1196,7 @@ static void processEvent(XEvent *event)
             if (event->xcookie.extension == _glfw.x11.xi.majorOpcode &&
                 XGetEventData(_glfw.x11.display, &event->xcookie))
             {
-                if (event->xcookie.evtype == XI_PropertyEvent)
-                {
-                    // the first proximity event seems to arrive one later AFTER XI_RawMotion...
-                    XIPropertyEvent* re = event->xcookie.data;
-
-                    // pen tablet property
-                    if (re->deviceid == _glfw.x11.xi.stylus_deviceid ||
-                        re->deviceid == _glfw.x11.xi.eraser_deviceid)
-                    {
-                        if (re->what == XIPropertyModified)
-                        {
-                            float *data = NULL;
-                            Atom type;
-                            int format;
-                            unsigned long num_items, bytes_after;
-
-                            if (XIGetProperty(
-                                _glfw.x11.display, re->deviceid,
-                                re->property,
-                                0, 5, False,
-                                XIAnyPropertyType,
-                                &type, &format, &num_items, &bytes_after,
-                                (unsigned char **)&data) == Success)
-                            {
-                                if (format == 32 && num_items > 4)
-                                    _glfwInputPenTabletProximity(((unsigned int *)data)[4] != 0);
-                                XFree(data);
-                            }
-                        }
-                    }
-                }
-                else if (event->xcookie.evtype == XI_RawMotion)
+                if (event->xcookie.evtype == XI_RawMotion)
                 {
                     XIRawEvent* re = event->xcookie.data;
                     if (re->valuators.mask_len)
@@ -1306,11 +1275,11 @@ static void processEvent(XEvent *event)
                                 double siny = sin(ty);
                                 double cosx = cos(tx);
                                 double cosy = cos(ty);
-                                /*double matrix[9] = { // full matrix for reference
-                                    0.0, -cosy, siny,
-                                    cosx, -sinx*siny, -sinx*cosy,
-                                    sinx,  cosx*siny,  cosx*cosy
-                                };*/
+                                // double matrix[9] = { // full matrix for reference
+                                //  0.0, -cosy, siny,
+                                //  cosx, -sinx*siny, -sinx*cosy,
+                                //  sinx,  cosx*siny,  cosx*cosy
+                                // };
                                 double v[3] = {sinx, cosx*siny,  cosx*cosy};
                                 double yaw = atan2(v[0], v[1]);
                                 double pitch = 3.141592653589793 - acos(v[2]);
@@ -1326,8 +1295,7 @@ static void processEvent(XEvent *event)
                                     0.0);
                             }
                         }
-                        // mouse raw motion
-                        else if (window && window->rawMouseMotion)
+                        else if (window && window->rawMouseMotion) // mouse raw motion
                         {
                             double xpos = window->virtualCursorPosX;
                             double ypos = window->virtualCursorPosY;
@@ -1342,6 +1310,37 @@ static void processEvent(XEvent *event)
                                 ypos += *values;
 
                             _glfwInputCursorPos(window, xpos, ypos);
+                        }
+                    }
+                }
+                else if (event->xcookie.evtype == XI_PropertyEvent)
+                {
+                    // the first proximity event seems to arrive one later AFTER XI_RawMotion...
+                    XIPropertyEvent* re = event->xcookie.data;
+
+                    // pen tablet property
+                    if (re->deviceid == _glfw.x11.xi.stylus_deviceid ||
+                        re->deviceid == _glfw.x11.xi.eraser_deviceid)
+                    {
+                        if (re->what == XIPropertyModified)
+                        {
+                            float *data = NULL;
+                            Atom type;
+                            int format;
+                            unsigned long num_items, bytes_after;
+
+                            if (XIGetProperty(
+                                _glfw.x11.display, re->deviceid,
+                                re->property,
+                                0, 5, False,
+                                XIAnyPropertyType,
+                                &type, &format, &num_items, &bytes_after,
+                                (unsigned char **)&data) == Success)
+                            {
+                                if (format == 32 && num_items > 4)
+                                    _glfwInputPenTabletProximity(((unsigned int *)data)[4] != 0);
+                                XFree(data);
+                            }
                         }
                     }
                 }

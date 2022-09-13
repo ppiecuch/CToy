@@ -1,7 +1,7 @@
 //========================================================================
 // GLFW 3.3 Cocoa - www.glfw.org
 //------------------------------------------------------------------------
-// Copyright (c) 2009-2016 Camilla Löwy <elmindreda@glfw.org>
+// Copyright (c) 2009-2019 Camilla Löwy <elmindreda@glfw.org>
 // Copyright (c) 2012 Torsten Walluhn <tw@mad-cad.net>
 //
 // This software is provided 'as-is', without any express or implied
@@ -228,6 +228,19 @@ static void matchCallback(void* context,
                 case kHIDUsage_GD_Select:
                 case kHIDUsage_GD_Start:
                     target = buttons;
+                    break;
+            }
+        }
+        else if (page == kHIDPage_Simulation)
+        {
+            switch (usage)
+            {
+                case kHIDUsage_Sim_Accelerator:
+                case kHIDUsage_Sim_Brake:
+                case kHIDUsage_Sim_Throttle:
+                case kHIDUsage_Sim_Rudder:
+                case kHIDUsage_Sim_Steering:
+                    target = axes;
                     break;
             }
         }
@@ -464,7 +477,7 @@ void _glfwPlatformUpdateGamepadGUID(char* guid)
         (strncmp(guid + 20, "000000000000", 12) == 0))
     {
         char original[33];
-        strcpy(original, guid);
+        strncpy(original, guid, sizeof(original) - 1);
         sprintf(guid, "03000000%.4s0000%.4s000000000000",
                 original, original + 16);
     }
